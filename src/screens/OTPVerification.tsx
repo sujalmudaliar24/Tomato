@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import OtpInput from '@twotalltotems/react-native-otp-input';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { THEME_COLOR } from '../strings';
 
@@ -100,23 +100,16 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
       </View>
 
       <View style={styles.otpContainer}>
-        <OtpInput
-          pinCount={6}
-          code={otp}
-          onCodeChanged={(code) => setOtp(code)}
-          secureTextEntry={false}
-          codeInputFieldStyle={styles.otpInput}
-          codeInputHighlightStyle={styles.otpInputFocus}
-          autoFocusOnLoad
+        <TextInput
+          value={otp}
+          onChangeText={setOtp}
+          style={styles.otpInput}
+          autoFocus
           editable={!loading}
-          onCodeFilled={(filledCode) => {
-            // OTP input is complete; let user see the moment it fills
-            console.log(`Code is ${filledCode}, you are good to go!`);
-            // Auto-verify when OTP is ready and not already loading
-            if (!loading && filledCode.length === 6) {
-              verifyOTP();
-            }
-          }}
+          keyboardType="number-pad"
+          maxLength={6}
+          placeholder="Enter OTP"
+          placeholderTextColor="#999"
         />
       </View>
 

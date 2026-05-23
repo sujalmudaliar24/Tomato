@@ -1,3 +1,8 @@
+// Workaround for legacy third-party modules that still call the removed jcenter() method
+org.gradle.api.artifacts.dsl.RepositoryHandler.metaClass.jcenter = { ->
+    mavenCentral()
+}
+
 buildscript {
     ext {
         buildToolsVersion = "36.0.0"
@@ -15,7 +20,8 @@ buildscript {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-        classpath("com.google.gms:google-services:4.4.4")
+        // Required for Firebase:
+        classpath("com.google.gms:google-services:4.4.2")
     }
 }
 

@@ -4,8 +4,7 @@ import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-di
 import { LOGIN_TITLE, THEME_COLOR } from '../strings';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import OTPVerification from './OTPVerification';
-// (Removed unused OTPInputView import)
-
+import Clipboard from '@react-native-clipboard/clipboard';
 
 
 
