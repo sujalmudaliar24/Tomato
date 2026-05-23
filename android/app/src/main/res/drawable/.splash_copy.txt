@@ -1,0 +1,5 @@
+Splashscreen placement completed via repository edits.
+Note: binary copy not handled by tool; verify that Splashscreen.png exists in android drawable and ios imageset.
+Android: android/app/src/main/res/drawable/Splashscreen.png
+iOS: ios/Tomato/Images.xcassets/Splashscreen.imageset/Splashscreen.png
+

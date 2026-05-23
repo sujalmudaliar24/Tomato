@@ -1,0 +1,3 @@
+Android splash drawable is configured to use Splashscreen.png.
+Verify that android/app/src/main/res/drawable/Splashscreen.png exists in your repo.
+

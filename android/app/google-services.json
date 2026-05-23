@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "258690407061",
+    "project_id": "zomatoclone-81a12",
+    "storage_bucket": "zomatoclone-81a12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:258690407061:android:49ee47903941f76b52199c",
+        "android_client_info": {
+          "package_name": "com.tomato"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOkXBy0d7v4On57-uX0oFCdQ3IzqUElfU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -27,8 +27,16 @@
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
+<imageView opaque="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo" translatesAutoresizingMaskIntoConstraints="NO" id="w8b-8Yt-xVZ">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                            </imageView>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
+                            <constraint firstItem="w8b-8Yt-xVZ" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="p2a-hb-XyO"/>
+                            <constraint firstItem="w8b-8Yt-xVZ" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="q9j-9p-PbF"/>
+                            <constraint firstItem="w8b-8Yt-xVZ" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="4yT-sX-1dL"/>
+                            <constraint firstItem="w8b-8Yt-xVZ" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="d5h-9A-3fC"/>
+
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="MN2-I3-ftu" secondAttribute="bottom" constant="20" id="OZV-Vh-mqD"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="GJd-Yh-RWb" secondAttribute="centerX" id="Q3B-4B-g5h"/>
                             <constraint firstItem="MN2-I3-ftu" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="akx-eg-2ui"/>
