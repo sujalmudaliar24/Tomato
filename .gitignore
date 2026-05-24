@@ -38,6 +38,14 @@ local.properties
 # node.js
 #
 node_modules/
+
+# Server (Node/Express backend)
+server/.env
+server/node_modules/
+server/.DS_Store
+server/dist/
+server/build/
+
 npm-debug.log
 yarn-error.log
 
