@@ -27,4 +27,4 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
-apply plugin: 'com.google.gms.google-services'
+// apply plugin: 'com.google.gms.google-services' // must be applied only in :app (com.android.application)

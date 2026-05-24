@@ -10,8 +10,10 @@ import {
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
+  FlatList,
 } from 'react-native';
 
+import Modal from 'react-native-modal';
 import React, { useState } from 'react';
 
 import {
@@ -25,275 +27,174 @@ import {
 } from '../strings';
 
 import auth from '@react-native-firebase/auth';
+
 import {
   useNavigation,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
 
-
-
 const Login = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
- 
-  const [input, setInput] =
-    useState('');
+  const [visible, setVisible] = useState(false);
+  const [input, setInput] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [languages, setLanguages] = useState([
+   {name: 'English', selected: true},
+    {name: 'हिंदी', selected: false},
+    {name: 'తెలుగు', selected: false},
+    {name:  'मराठी', selected: false},
+    {name: 'தமிழ்', selected: false},
+    {name: 'ગુજરાતી', selected: false}
+  ]);
 
- 
-  const [password, setPassword] =
-    useState('');
+  const isEmail = input.includes('@');
 
- 
-  const [loading, setLoading] =
-    useState(false);
+  const loginWithEmail = async () => {
+    if (!input || !password) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
 
- 
-  const isEmail =
-    input.includes('@');
+    try {
+      setLoading(true);
 
+      const response = await auth().signInWithEmailAndPassword(
+        input.trim(),
+        password
+      );
 
-  
+      await response.user.reload();
 
-  const loginWithEmail =
-    async () => {
-
-      if (!input || !password) {
-
+      if (!response.user.emailVerified) {
         Alert.alert(
-          'Error',
-          'Please fill all fields'
+          'Verify Email',
+          'Please verify your email first.'
         );
 
+        await auth().signOut();
         return;
       }
 
-      try {
+      const token = await response.user.getIdToken();
 
-        setLoading(true);
-
-
-      
-        const response =
-          await auth()
-            .signInWithEmailAndPassword(
-              input.trim(),
-              password
-            );
-
-
-        // RELOAD USER
-        await response.user.reload();
-
-
-        // CHECK EMAIL VERIFIED
-        if (
-          !response.user.emailVerified
-        ) {
-
-          Alert.alert(
-            'Verify Email',
-            'Please verify your email first.'
-          );
-
-          await auth().signOut();
-
-          return;
+      const backendResponse = await fetch(
+        'http://10.211.48.23:8080/auth/verify-token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+          }),
         }
+      );
 
+      const data = await backendResponse.json();
 
-        
-        const token =
-          await response.user.getIdToken();
-
-
-        // SEND TOKEN TO BACKEND
-        const backendResponse =
-          await fetch(
-'http://10.211.48.23:8080/auth/verify-token',
-            {
-
-              method: 'POST',
-
-              headers: {
-                'Content-Type':
-                  'application/json',
-              },
-
-              body: JSON.stringify({
-                token,
-              }),
-
-            }
-          );
-
-
-        const data =
-          await backendResponse.json();
-
-
-        // BACKEND VALIDATION FAILED
-        if (!data.success) {
-
-          Alert.alert(
-            'Login Failed',
-            data.error
-          );
-
-          return;
-        }
-
-
-        console.log(
-          'Backend verified:',
-          data
-        );
-
-
-        Alert.alert(
-          'Success',
-          'Login Successful'
-        );
-
-
-      } catch (e: any) {
-
-        console.log(e);
-
-        Alert.alert(
-          'Login Failed',
-          e?.message ||
-            'Something went wrong'
-        );
-
-      } finally {
-
-        setLoading(false);
+      if (!data.success) {
+        Alert.alert('Login Failed', data.error);
+        return;
       }
-    };
 
+      console.log('Backend verified:', data);
 
+      Alert.alert('Success', 'Login Successful');
+    } catch (e: any) {
+      console.log(e);
+
+      Alert.alert(
+        'Login Failed',
+        e?.message || 'Something went wrong'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={0}
     >
-
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'flex-start',
-          paddingBottom: 20,
-        }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-
-        {/* TOP BANNER */}
         <View style={styles.topView}>
-
           <Image
             source={require('../assets/images/banner.png')}
             style={styles.banner}
           />
 
+          <TouchableOpacity style={styles.changeLangBtn} onPress={()=>{
+            setVisible(true);
+          }}>
+  <Image source ={require("../assets/images/languages.png") } style={styles.changeLangIcon}/>
+          </TouchableOpacity>
         </View>
 
-        {/* TITLE */}
         <Text style={styles.loginTitle}>
           {LOGIN_TITLE}
         </Text>
 
-        {/* DIVIDER */}
         <View style={styles.divider}>
+          <View style={styles.dividerView} />
 
-          <View
-            style={styles.dividerView}
-          />
-
-          <Text
-            style={styles.dividerText}
-          >
+          <Text style={styles.dividerText}>
             Login or Sign up
           </Text>
 
-          <View
-            style={styles.dividerView}
-          />
-
+          <View style={styles.dividerView} />
         </View>
 
-        {/* EMAIL INPUT */}
         <TextInput
           placeholder="Email Address"
           placeholderTextColor="#000"
-
           value={input}
-
           onChangeText={setInput}
-
           style={styles.mobileInput}
-
           keyboardType="email-address"
-
           autoCapitalize="none"
-
           autoCorrect={false}
         />
 
-        {/* PASSWORD INPUT */}
         <TextInput
           placeholder="Password"
           placeholderTextColor="#000"
-
           value={password}
-
           onChangeText={setPassword}
-
           style={styles.mobileInput}
-
           secureTextEntry
-
           autoCapitalize="none"
-
           autoCorrect={false}
         />
 
-        {/* LOGIN BUTTON */}
         <TouchableOpacity
           style={styles.loginBtn}
-          onPress={loginWithEmail}
+          onPress={() => {
+           
+            loginWithEmail();
+          }}
           disabled={loading}
         >
-
           {loading ? (
-
-            <ActivityIndicator
-              color="#fff"
-            />
-
+            <ActivityIndicator color="#fff" />
           ) : (
-
-            <Text
-              style={styles.LoginBtnText}
-            >
+            <Text style={styles.LoginBtnText}>
               Login
             </Text>
-
           )}
-
         </TouchableOpacity>
 
-        {/* SIGNUP BUTTON */}
         <TouchableOpacity
           style={styles.signupBtn}
-
           onPress={() =>
-            navigation.navigate(
-              'SignUpScreen'
-            )
+            navigation.navigate('SignUpScreen')
           }
         >
           <Text style={styles.signupText}>
@@ -301,24 +202,49 @@ const Login = () => {
           </Text>
         </TouchableOpacity>
 
-      </ScrollView>
+        <Modal
+          style={styles.modalStyle}
+          isVisible={visible}
+          animationIn="slideInUp"
+          
+          onBackdropPress={() => {
+            setVisible(false);
+          }}
+        >
+          <View style={styles.modalContainer}>
+            <FlatList
+              data={languages}
+              style={{ flex: 1 }}
+              keyExtractor={(_, index) => index.toString()}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              renderItem={({item}) => {
+                return (
+                  <TouchableOpacity style={[styles.languageItem, {borderColor: item.selected? THEME_COLOR : '#8e8e8e'}]}>
+                  <View style={{width:'100%', height:'100%', flexDirection:'row', alignItems: 'center', paddingLeft:20}}>
+                    {item.selected ==true?(
+                      <Image source={require('../assets/images/selected.png')} style={{width:24, height:24, tintColor: THEME_COLOR} }/>
+                    ):(<Image source={require('../assets/images/unselected.png')} style={{width:24, height:24}}/>)}
+                    <Text style={{fontSize:18, fontWeight:'700'}}>{item.name}</Text>
 
+                  </View>
+                </TouchableOpacity>
+              )
+            }} />
+          </View>
+        </Modal>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
 export default Login;
 
-
-
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
 
-  // Used by ScrollView's contentContainerStyle
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'flex-start',
@@ -332,146 +258,121 @@ const styles = StyleSheet.create({
   banner: {
     width: '100%',
     height: '100%',
-
-    borderBottomLeftRadius:
-      Platform.OS === 'ios'
-        ? 50
-        : 0,
-
-    borderBottomRightRadius:
-      Platform.OS === 'ios'
-        ? 50
-        : 0,
+    borderBottomLeftRadius: Platform.OS === 'ios' ? 50 : 0,
+    borderBottomRightRadius: Platform.OS === 'ios' ? 50 : 0,
   },
 
   loginTitle: {
-
-    fontSize:
-      responsiveFontSize(3.5),
-
+    fontSize: responsiveFontSize(3.5),
     fontWeight: '800',
-
     color: '#000',
-
     alignSelf: 'center',
-
     width: '85%',
-
     textAlign: 'center',
-
-    marginTop:
-      responsiveHeight(5),
+    marginTop: responsiveHeight(5),
   },
 
   divider: {
-
     flexDirection: 'row',
-
     width: '100%',
-
-    marginTop:
-      responsiveHeight(4),
-
+    marginTop: responsiveHeight(4),
     alignItems: 'center',
-
-    justifyContent:
-      'space-evenly',
+    justifyContent: 'space-evenly',
   },
 
   dividerView: {
-
     height: 1,
-
     backgroundColor: '#8e8e8e',
-
     width: '25%',
-
     opacity: 0.5,
-
     marginRight: 20,
-
     marginLeft: 20,
   },
 
   dividerText: {
-
-    fontSize:
-      responsiveFontSize(2.5),
-
+    fontSize: responsiveFontSize(2.5),
     color: '#8e8e8e',
   },
 
   mobileInput: {
-
     borderWidth: 1,
-
     borderRadius: 10,
-
     height: 55,
-
     borderColor: '#8e8e8e',
-
-    marginTop:
-      responsiveHeight(4),
-
+    marginTop: responsiveHeight(4),
     width: '85%',
-
     alignSelf: 'center',
-
     paddingHorizontal: 15,
-
     color: '#000',
-
     backgroundColor: '#fff',
   },
 
   loginBtn: {
-
-    backgroundColor:
-      THEME_COLOR,
-
+    backgroundColor: THEME_COLOR,
     width: '85%',
-
     height: 55,
-
     borderRadius: 10,
-
-    marginTop:
-      responsiveHeight(5),
-
+    marginTop: responsiveHeight(5),
     justifyContent: 'center',
-
     alignItems: 'center',
-
     alignSelf: 'center',
   },
 
   LoginBtnText: {
-
-    fontSize:
-      responsiveFontSize(2.5),
-
+    fontSize: responsiveFontSize(2.5),
     fontWeight: '700',
-
     color: '#fff',
   },
 
   signupBtn: {
-
-    marginTop:
-      responsiveHeight(3),
-
+    marginTop: responsiveHeight(3),
     alignSelf: 'center',
   },
 
   signupText: {
-
     color: THEME_COLOR,
-
-    fontSize:
-      responsiveFontSize(2),
-
+    fontSize: responsiveFontSize(2),
     fontWeight: '700',
   },
 
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    height: 300,
+    width: '100%',
+    paddingTop:20
+   
+  },
+
+  modalStyle: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+
+  changeLangIcon:{
+ 
+    width:25,
+    height:25,
+    
+
+  },
+  changeLangBtn:{
+    borderWidth:1,
+    borderColor:'#fff',
+    padding:5,
+    position:'absolute',
+    top:50,
+    left:20,
+    borderRadius:10,
+    backgroundColor: '#fff'
+  },
+  languageItem:{
+    width:'90%',
+    alignSelf:'center',
+    height:60,
+    borderRadius:10,
+    borderWidth:1,
+    marginTop:10
+  }
 });
