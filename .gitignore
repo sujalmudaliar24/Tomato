@@ -46,6 +46,9 @@ server/.DS_Store
 server/dist/
 server/build/
 
+# Firebase service account key (do not commit)
+server/config/serviceAccountKey.json
+
 npm-debug.log
 yarn-error.log
 
