@@ -25,152 +25,184 @@ import {
 } from '../strings';
 
 import auth from '@react-native-firebase/auth';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
 
 
 
-const Login = () => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+const SignUpScreen = ({
+  navigation,
+}: any) => {
 
- 
-  const [input, setInput] =
+  // STATES
+  const [name, setName] =
     useState('');
 
- 
+  const [email, setEmail] =
+    useState('');
+
   const [password, setPassword] =
     useState('');
 
- 
+  const [confirmPassword,
+    setConfirmPassword] =
+    useState('');
+
   const [loading, setLoading] =
     useState(false);
 
- 
-  const isEmail =
-    input.includes('@');
 
 
-  
-
-  const loginWithEmail =
-    async () => {
-
-      if (!input || !password) {
-
-        Alert.alert(
-          'Error',
-          'Please fill all fields'
-        );
-
-        return;
-      }
-
-      try {
-
-        setLoading(true);
 
 
-      
-        const response =
-          await auth()
-            .signInWithEmailAndPassword(
-              input.trim(),
-              password
-            );
+  const signupUser = async () => {
+
+    // VALIDATIONS
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
+
+      Alert.alert(
+        'Error',
+        'Please fill all fields'
+      );
+
+      return;
+    }
 
 
-        // RELOAD USER
-        await response.user.reload();
+    // PASSWORD MATCH
+    if (
+      password !== confirmPassword
+    ) {
+
+      Alert.alert(
+        'Error',
+        'Passwords do not match'
+      );
+
+      return;
+    }
 
 
-        // CHECK EMAIL VERIFIED
-        if (
-          !response.user.emailVerified
-        ) {
+    // PASSWORD LENGTH
+    if (password.length < 6) {
 
-          Alert.alert(
-            'Verify Email',
-            'Please verify your email first.'
+      Alert.alert(
+        'Weak Password',
+        'Password must be at least 6 characters'
+      );
+
+      return;
+    }
+
+
+    try {
+
+      setLoading(true);
+
+
+      // CREATE USER
+      const response =
+        await auth()
+          .createUserWithEmailAndPassword(
+            email.trim(),
+            password
           );
 
-          await auth().signOut();
 
-          return;
-        }
-
-
-        
-        const token =
-          await response.user.getIdToken();
+      // UPDATE USER NAME
+      await response.user.updateProfile({
+        displayName: name,
+      });
 
 
-        // SEND TOKEN TO BACKEND
-        const backendResponse =
-          await fetch(
+      // SEND EMAIL VERIFICATION
+      await response.user
+        .sendEmailVerification();
+
+
+      // GET FIREBASE TOKEN
+      const token =
+        await response.user
+          .getIdToken();
+
+
+      // SEND TOKEN TO BACKEND
+      const backendResponse =
+        await fetch(
 'http://10.211.48.23:8080/auth/verify-token',
-            {
+          {
 
-              method: 'POST',
+            method: 'POST',
 
-              headers: {
-                'Content-Type':
-                  'application/json',
-              },
+            headers: {
+              'Content-Type':
+                'application/json',
+            },
 
-              body: JSON.stringify({
-                token,
-              }),
+            body: JSON.stringify({
+              token,
+            }),
 
-            }
-          );
-
-
-        const data =
-          await backendResponse.json();
-
-
-        // BACKEND VALIDATION FAILED
-        if (!data.success) {
-
-          Alert.alert(
-            'Login Failed',
-            data.error
-          );
-
-          return;
-        }
-
-
-        console.log(
-          'Backend verified:',
-          data
+          }
         );
 
 
-        Alert.alert(
-          'Success',
-          'Login Successful'
-        );
+      const data =
+        await backendResponse.json();
 
 
-      } catch (e: any) {
+      console.log(
+        'Backend Verified:',
+        data
+      );
 
-        console.log(e);
 
-        Alert.alert(
-          'Login Failed',
-          e?.message ||
-            'Something went wrong'
-        );
+      Alert.alert(
 
-      } finally {
+        'Verify Your Email',
 
-        setLoading(false);
-      }
-    };
+        'A verification email has been sent. Please verify your email before logging in.',
+
+        [
+          {
+            text: 'OK',
+
+            onPress: async () => {
+
+              await auth().signOut();
+
+              navigation.navigate(
+                'Login'
+              );
+
+            },
+          },
+        ]
+
+      );
+
+
+    } catch (e: any) {
+
+      console.log(e);
+
+      Alert.alert(
+
+        'Signup Failed',
+
+        e?.message ||
+          'Something went wrong'
+
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
 
 
@@ -203,7 +235,7 @@ const Login = () => {
 
         {/* TITLE */}
         <Text style={styles.loginTitle}>
-          {LOGIN_TITLE}
+          Create Account
         </Text>
 
         {/* DIVIDER */}
@@ -216,7 +248,7 @@ const Login = () => {
           <Text
             style={styles.dividerText}
           >
-            Login or Sign up
+            Sign up with Email
           </Text>
 
           <View
@@ -225,14 +257,33 @@ const Login = () => {
 
         </View>
 
-        {/* EMAIL INPUT */}
+        {/* NAME INPUT */}
         <TextInput
-          placeholder="Email Address"
+
+          placeholder="Full Name"
+
           placeholderTextColor="#000"
 
-          value={input}
+          value={name}
 
-          onChangeText={setInput}
+          onChangeText={setName}
+
+          style={styles.mobileInput}
+
+          autoCapitalize="words"
+
+        />
+
+        {/* EMAIL INPUT */}
+        <TextInput
+
+          placeholder="Email Address"
+
+          placeholderTextColor="#000"
+
+          value={email}
+
+          onChangeText={setEmail}
 
           style={styles.mobileInput}
 
@@ -241,11 +292,14 @@ const Login = () => {
           autoCapitalize="none"
 
           autoCorrect={false}
+
         />
 
         {/* PASSWORD INPUT */}
         <TextInput
+
           placeholder="Password"
+
           placeholderTextColor="#000"
 
           value={password}
@@ -258,14 +312,39 @@ const Login = () => {
 
           autoCapitalize="none"
 
-          autoCorrect={false}
+        
         />
 
-        {/* LOGIN BUTTON */}
+        {/* CONFIRM PASSWORD */}
+        <TextInput
+
+          placeholder="Confirm Password"
+
+          placeholderTextColor="#000"
+
+          value={confirmPassword}
+
+          onChangeText={
+            setConfirmPassword
+          }
+
+          style={styles.mobileInput}
+
+          secureTextEntry
+
+          autoCapitalize="none"
+
+        />
+
+        {/* SIGNUP BUTTON */}
         <TouchableOpacity
+
           style={styles.loginBtn}
-          onPress={loginWithEmail}
+
+          onPress={signupUser}
+
           disabled={loading}
+
         >
 
           {loading ? (
@@ -279,26 +358,32 @@ const Login = () => {
             <Text
               style={styles.LoginBtnText}
             >
-              Login
+              Create Account
             </Text>
 
           )}
 
         </TouchableOpacity>
 
-        {/* SIGNUP BUTTON */}
+        {/* LOGIN BUTTON */}
         <TouchableOpacity
+
           style={styles.signupBtn}
 
           onPress={() =>
             navigation.navigate(
-              'SignUpScreen'
+              'Login'
             )
           }
+
         >
+
           <Text style={styles.signupText}>
-            Create New Account
+
+            Already have an account? Login
+
           </Text>
+
         </TouchableOpacity>
 
       </ScrollView>
@@ -307,7 +392,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUpScreen;
 
 
 
@@ -318,19 +403,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  // Used by ScrollView's contentContainerStyle
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    paddingBottom: 20,
-  },
-
   topView: {
     height: responsiveHeight(35),
   },
 
   banner: {
+
     width: '100%',
+
     height: '100%',
 
     borderBottomLeftRadius:
@@ -396,7 +476,7 @@ const styles = StyleSheet.create({
   dividerText: {
 
     fontSize:
-      responsiveFontSize(2.5),
+      responsiveFontSize(2.2),
 
     color: '#8e8e8e',
   },
@@ -412,7 +492,7 @@ const styles = StyleSheet.create({
     borderColor: '#8e8e8e',
 
     marginTop:
-      responsiveHeight(4),
+      responsiveHeight(3),
 
     width: '85%',
 
@@ -449,7 +529,7 @@ const styles = StyleSheet.create({
   LoginBtnText: {
 
     fontSize:
-      responsiveFontSize(2.5),
+      responsiveFontSize(2.3),
 
     fontWeight: '700',
 
