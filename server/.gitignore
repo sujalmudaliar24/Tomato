@@ -2,4 +2,6 @@ node_modules/
 dist/
 build/
 .env
-
+server/config/serviceAccountKey.json
+.env
+node_modules
