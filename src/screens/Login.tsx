@@ -1,14 +1,38 @@
-import { StyleSheet, Text, View, Image, Platform, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, FlatList, } from 'react-native';
+import { StyleSheet, Text, View, Image, Platform, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, FlatList, AppState, } from 'react-native';
 import Modal from 'react-native-modal';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { responsiveHeight, responsiveFontSize, } from 'react-native-responsive-dimensions';
 import { LOGIN_TITLE, THEME_COLOR, } from '../strings';
 import auth from '@react-native-firebase/auth';
 import { useNavigation, type NavigationProp, type ParamListBase, } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { verifyToken } from '../services/authBackend';
 
 
 const Login = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (state) => {
+      if (state === 'active') {
+        const user = auth().currentUser;
+        if (user) {
+          try {
+            await user.reload();
+            if (user.emailVerified) {
+              navigation.navigate('MainScreen');
+            }
+          } catch (e) {
+            console.log('Error reloading user on app resume', e);
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [navigation]);
 
   const [visible, setVisible] = useState(false);
   const [input, setInput] = useState('');
@@ -60,29 +84,23 @@ const Login = () => {
 
       const token = await response.user.getIdToken();
 
-      const backendResponse = await fetch(
-        'http://10.211.48.23:8080/auth/verify-token',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            token,
-          }),
-        }
-      );
-
-      const data = await backendResponse.json();
+      const data = await verifyToken(token);
 
       if (!data.success) {
-        Alert.alert('Login Failed', data.error);
+        Alert.alert('Login Failed', data.error || 'Backend verification failed');
         return;
+      }
+
+      const appJwt = data.jwt;
+      if (appJwt) {
+        await AsyncStorage.setItem('auth_jwt', appJwt);
       }
 
       console.log('Backend verified:', data);
 
       Alert.alert('Success', 'Login Successful');
+
+      navigation.navigate('MainScreen');
     } catch (e: any) {
       console.log(e);
 

@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 type StartPhoneResponse = {
   sessionId: string;
   ttlMs?: number;
@@ -7,7 +9,7 @@ type VerifyPhoneResponse = {
   firebaseCustomToken: string;
 };
 
-const BACKEND_URL = 'http://localhost:8080';
+const BACKEND_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
 
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
@@ -39,5 +41,9 @@ export async function startPhoneAuth(phoneNumberE164: string): Promise<StartPhon
 
 export async function verifyPhoneAuth(sessionId: string, code: string): Promise<VerifyPhoneResponse> {
   return postJson<VerifyPhoneResponse>('/auth/phone/verify', { sessionId, code });
+}
+
+export async function verifyToken(token: string) {
+  return postJson<any>('/auth/verify-token', { token });
 }
 
