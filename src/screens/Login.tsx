@@ -1,38 +1,11 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Platform,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  KeyboardAvoidingView,
-  FlatList,
-} from 'react-native';
-
+import { StyleSheet, Text, View, Image, Platform, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, FlatList, } from 'react-native';
 import Modal from 'react-native-modal';
 import React, { useState } from 'react';
-
-import {
-  responsiveHeight,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
-
-import {
-  LOGIN_TITLE,
-  THEME_COLOR,
-} from '../strings';
-
+import { responsiveHeight, responsiveFontSize, } from 'react-native-responsive-dimensions';
+import { LOGIN_TITLE, THEME_COLOR, } from '../strings';
 import auth from '@react-native-firebase/auth';
+import { useNavigation, type NavigationProp, type ParamListBase, } from '@react-navigation/native';
 
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
 
 const Login = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -42,14 +15,21 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [languages, setLanguages] = useState([
-   {name: 'English', selected: true},
-    {name: 'हिंदी', selected: false},
-    {name: 'తెలుగు', selected: false},
-    {name:  'मराठी', selected: false},
-    {name: 'தமிழ்', selected: false},
-    {name: 'ગુજરાતી', selected: false}
+    { name: 'English', selected: true },
+    { name: 'हिंदी', selected: false },
+    { name: 'తెలుగు', selected: false },
+    { name: 'मराठी', selected: false },
+    { name: 'தமிழ்', selected: false },
+    { name: 'ગુજરાતી', selected: false }
   ]);
-
+  const OnSelect = (index: number) => {
+    const updatedLanguages = languages.map((item, ind) => ({
+      ...item,
+      selected: ind === index
+    }));
+    setLanguages(updatedLanguages);
+    setVisible(false);
+  }
   const isEmail = input.includes('@');
 
   const loginWithEmail = async () => {
@@ -131,10 +111,10 @@ const Login = () => {
             style={styles.banner}
           />
 
-          <TouchableOpacity style={styles.changeLangBtn} onPress={()=>{
+          <TouchableOpacity style={styles.changeLangBtn} onPress={() => {
             setVisible(true);
           }}>
-  <Image source ={require("../assets/images/languages.png") } style={styles.changeLangIcon}/>
+            <Image source={require("../assets/images/languages.png")} style={styles.changeLangIcon} />
           </TouchableOpacity>
         </View>
 
@@ -177,7 +157,7 @@ const Login = () => {
         <TouchableOpacity
           style={styles.loginBtn}
           onPress={() => {
-           
+
             loginWithEmail();
           }}
           disabled={loading}
@@ -206,7 +186,7 @@ const Login = () => {
           style={styles.modalStyle}
           isVisible={visible}
           animationIn="slideInUp"
-          
+
           onBackdropPress={() => {
             setVisible(false);
           }}
@@ -217,19 +197,34 @@ const Login = () => {
               style={{ flex: 1 }}
               keyExtractor={(_, index) => index.toString()}
               contentContainerStyle={{ paddingBottom: 20 }}
-              renderItem={({item}) => {
+              renderItem={({ item, index }) => {
                 return (
-                  <TouchableOpacity style={[styles.languageItem, {borderColor: item.selected? THEME_COLOR : '#8e8e8e'}]}>
-                  <View style={{width:'100%', height:'100%', flexDirection:'row', alignItems: 'center', paddingLeft:20}}>
-                    {item.selected ==true?(
-                      <Image source={require('../assets/images/selected.png')} style={{width:24, height:24, tintColor: THEME_COLOR} }/>
-                    ):(<Image source={require('../assets/images/unselected.png')} style={{width:24, height:24}}/>)}
-                    <Text style={{fontSize:18, fontWeight:'700'}}>{item.name}</Text>
+                  <TouchableOpacity style={[styles.languageItem, { borderColor: item.selected ? THEME_COLOR : '#8e8e8e' }]} onPress={() => {
+                    OnSelect(index);
+                  }}>
+                    <View style={{ width: '100%', height: '100%', borderRadius: 10,flexDirection: 'row', alignItems: 'center', paddingLeft: 20, justifyContent: 'space-between', backgroundColor: item.selected ? '#fff7f7' : '#fff'  }}>
+                      <View style={{ flexDirection: 'row' }}>
+                        {item.selected == true ? (
+                          <Image source={require('../assets/images/selected.png')} style={{ width: 24, height: 24, marginRight: 10, tintColor: THEME_COLOR }} />
+                        ) : (<Image source={require('../assets/images/unselected.png')} style={{ width: 24, height: 24, marginRight: 10, }} />)}
+                        <Text style={{ fontSize: 18, fontWeight: '700', marginLeft: 10, color: item.selected ? THEME_COLOR : '#8e8e8e' }}>{item.name}</Text>
+                      </View>
+                      <Image
+                        source={
+                          item.selected
+                            ? require('../assets/images/colorlanguages.png')
+                            : require('../assets/images/languages.png')
+                        }
+                        style={[
+                          { width: 50, height: 50, marginRight: 20 },
+                          !item.selected && { tintColor: '#8e8e8e', opacity: 0.5 },
+                        ]}
+                      />
 
-                  </View>
-                </TouchableOpacity>
-              )
-            }} />
+                    </View>
+                  </TouchableOpacity>
+                )
+              }} />
           </View>
         </Modal>
       </ScrollView>
@@ -341,8 +336,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     height: 300,
     width: '100%',
-    paddingTop:20
-   
+    paddingTop: 20
+
   },
 
   modalStyle: {
@@ -350,29 +345,29 @@ const styles = StyleSheet.create({
     margin: 0,
   },
 
-  changeLangIcon:{
- 
-    width:25,
-    height:25,
-    
+  changeLangIcon: {
+
+    width: 25,
+    height: 25,
+
 
   },
-  changeLangBtn:{
-    borderWidth:1,
-    borderColor:'#fff',
-    padding:5,
-    position:'absolute',
-    top:50,
-    left:20,
-    borderRadius:10,
+  changeLangBtn: {
+    borderWidth: 1,
+    borderColor: '#fff',
+    padding: 5,
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    borderRadius: 10,
     backgroundColor: '#fff'
   },
-  languageItem:{
-    width:'90%',
-    alignSelf:'center',
-    height:60,
-    borderRadius:10,
-    borderWidth:1,
-    marginTop:10
+  languageItem: {
+    width: '90%',
+    alignSelf: 'center',
+    height: 60,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 10
   }
 });
