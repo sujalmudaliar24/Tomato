@@ -20,9 +20,10 @@ import {
 } from 'react-native-responsive-dimensions';
 
 import {
-  LOGIN_TITLE,
   THEME_COLOR,
 } from '../strings';
+
+import { verifyToken } from '../services/authBackend';
 
 import auth from '@react-native-firebase/auth';
 
@@ -130,34 +131,8 @@ const SignUpScreen = ({
 
 
       // SEND TOKEN TO BACKEND
-      const backendResponse =
-        await fetch(
-'http://10.211.48.23:8080/auth/verify-token',
-          {
-
-            method: 'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json',
-            },
-
-            body: JSON.stringify({
-              token,
-            }),
-
-          }
-        );
-
-
-      const data =
-        await backendResponse.json();
-
-
-      console.log(
-        'Backend Verified:',
-        data
-      );
+      const data = await verifyToken(token);
+      console.log('Backend Verified:', data);
 
 
       Alert.alert(
